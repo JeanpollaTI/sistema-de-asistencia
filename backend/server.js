@@ -4,7 +4,7 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 
-// Rutas (usando named exports)
+// Rutas
 import { authRouter } from "./routes/auth.js";
 import { horarioRouter } from "./routes/horario.js";
 import { profesoresRouter } from "./routes/profesores.js";
@@ -21,22 +21,24 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 
 // ----------------- RUTAS -----------------
-app.use("/auth", authRouter);         // Registro, login, reset password y administración de usuarios/profesores
-app.use("/horario", horarioRouter);   // Módulo de horario
-app.use("/profesores", profesoresRouter); // Administración de profesores y edición de perfil
+app.use("/auth", authRouter);
+app.use("/horario", horarioRouter);
+app.use("/profesores", profesoresRouter);
 
-// ----------------- FALLBACK 404 -----------------
-app.use((req, res) => {
-  res.status(404).json({ msg: "Ruta no encontrada" });
+// ----------------- FRONTEND REACT -----------------
+// Servir frontend build
+const frontendPath = path.join(process.cwd(), "frontend", "build");
+app.use(express.static(frontendPath));
+
+// Cualquier ruta que no sea API, enviar index.html
+app.get("*", (req, res) => {
+  res.sendFile(path.join(frontendPath, "index.html"));
 });
 
 // ----------------- MONGODB -----------------
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-})
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB conectado"))
-  .catch((err) => console.log("❌ Error MongoDB:", err));
+  .catch((err) => console.error("❌ Error MongoDB:", err));
 
 // ----------------- SERVIDOR -----------------
 const PORT = process.env.PORT || 5000;
